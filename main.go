@@ -7,15 +7,24 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"sync"
 )
 
 func main() {
-	findDuplication("papaya_image/mature", true)
-	findDuplication("papaya_image/partiallymature", true)
-	findDuplication("papaya_image/unmature", true)
+	wg := &sync.WaitGroup{}
+	wg.Add(6)
+	go findDuplication("Datasets/train/unripe", true, wg)
+	go findDuplication("Datasets/train/ripe", true, wg)
+	go findDuplication("Datasets/train/medium", true, wg)
+	go findDuplication("Datasets/validation/unripe", true, wg)
+	go findDuplication("Datasets/validation/ripe", true, wg)
+	go findDuplication("Datasets/validation/medium", true, wg)
 }
 
-func findDuplication(dirPath string, deleteDuplication bool) {
+
+
+func findDuplication(dirPath string, deleteDuplication bool, wg *sync.WaitGroup) {
+	defer wg.Done()
 	log.Printf("Looking for duplication on %s\n", dirPath)
 	dirFiles, err := ioutil.ReadDir(dirPath)
 	if err != nil {
@@ -78,10 +87,11 @@ func findDuplication(dirPath string, deleteDuplication bool) {
 					delCount++
 				}
 			}
-			dupCount += len(sum)
+			dupCount += len(sum) - 1
 		}
 	}
-	log.Println("Total duplication: ", dupCount)
-	log.Println("Distinct: ", disCount)
-	log.Println("Deleted: ", delCount)
+	log.Println("Total Files:", len(dirFiles))
+	log.Println("Distinct Files:", disCount)
+	log.Println("Duplication Files:", dupCount)
+	log.Println("Deleted:", delCount)
 }
