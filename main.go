@@ -10,12 +10,12 @@ import (
 )
 
 func main() {
-	findDuplication("papaya_image/mature")
-	findDuplication("papaya_image/partiallymature")
-	findDuplication("papaya_image/unmature")
+	findDuplication("papaya_image/mature", true)
+	findDuplication("papaya_image/partiallymature", true)
+	findDuplication("papaya_image/unmature", true)
 }
 
-func findDuplication(dirPath string) {
+func findDuplication(dirPath string, deleteDuplication bool) {
 	log.Printf("Looking for duplication on %s\n", dirPath)
 	dirFiles, err := ioutil.ReadDir(dirPath)
 	if err != nil {
@@ -61,6 +61,7 @@ func findDuplication(dirPath string) {
 	log.Println("Result")
 	dupCount := 0
 	disCount := 0
+	delCount := 0
 	for _, sum := range sums {
 		count := len(sum)
 		if count >= 1 {
@@ -70,10 +71,17 @@ func findDuplication(dirPath string) {
 			log.Printf("%s has %d duplication\n", sum[0], count-1)
 			for i := 1; i<count; i++ {
 				log.Printf("\t%s\n", sum[i])
+				if deleteDuplication {
+					if err := os.Remove(sum[i]); err != nil {
+						log.Fatalln("unable to remove file")
+					}
+					delCount++
+				}
 			}
 			dupCount += len(sum)
 		}
 	}
 	log.Println("Total duplication: ", dupCount)
 	log.Println("Distinct: ", disCount)
+	log.Println("Deleted: ", delCount)
 }
